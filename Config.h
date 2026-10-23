@@ -76,7 +76,8 @@
 #define AXIS2_STEPS_PER_DEGREE      256000.00000 // Нуждается в индивидуальном расчете под ваши редукторы!
 #define AXIS2_REVERSE                 OFF 
 #define AXIS2_LIMIT_MIN               0   // Программный лимит горизонта (0 градусов)
-#define AXIS2_LIMIT_MAX                85  // Программный лимит зенита (85 градусов)
+#define AXIS2_LIMIT_MAX                80  // Программный лимит зенита (85 градусов)
+
 
 #define AXIS2_DRIVER_MICROSTEPS        64 
 #define AXIS2_DRIVER_MICROSTEPS_GOTO    4 
@@ -98,24 +99,17 @@
 
 
 // --- НАСТРОЙКА GPS (Модуль Beitian BN-220 подключается к X-MIN) ------------------------------------------------------------------
-//#define TIME_LOCATION_SOURCE          GPS 
-//#define SERIAL_GPS                    Serial2
-//#define SERIAL_GPS_RX                 34   // Физический пин сигнального контакта X-MIN
-//#define SERIAL_GPS_TX                 22
-//#define SERIAL_GPS_BAUD               9600                                      
-//#define TIME_LOCATION_PPS_SENSE       OFF 
+#define TIME_LOCATION_SOURCE          GPS 
+#define SERIAL_GPS                    Serial2
+#define SERIAL_GPS_RX                 34   // Физический пин сигнального контакта X-MIN
+#define SERIAL_GPS_TX                 22
+#define SERIAL_GPS_BAUD               9600                                      
+#define TIME_LOCATION_PPS_SENSE       OFF 
 
 #undef  STICK_CONTROL_X_PIN
 #undef  STICK_CONTROL_Y_PIN
 #undef  STICK_CONTROL_KEY_PI
-//#define STICK_CONTROL_X_PIN    34  // Вісь X на TE (GPIO36) без програмної затримки
-//#define STICK_CONTROL_Y_PIN    35  // Вісь Y на TB (GPIO39) без програмної затримки
 
-// 2. Безпечно переносимо кнопку (GPIO25 не чіпаємо, бо там MOTOR_ENABLE!)
-//#undef  STICK_CONTROL_KEY_PIN
-//#define STICK_CONTROL_KEY_PIN  15         // Кнопка SW йде на роз'єм Z-min (GPIO25)
-//#define STICK_CONTROL_KEY_PULLUP ON        // Внутрішня підтяжка кнопки
-//#define STICK_CONTROL_DEADBAND 10
 #define DISPLAY_TYPE           OFF         // Екран вимкнено
 
 
@@ -176,7 +170,7 @@
 
 #define SLEW_RATE_BASE_DESIRED        2.5 
 #define SLEW_RATE_MEMORY               ON 
-#define SLEW_ACCELERATION_DIST        15.0 
+#define SLEW_ACCELERATION_DIST        5.0 
 #define SLEW_RAPID_STOP_DIST          2.0 
 #define GOTO_FEATURE                   ON 
 #define GOTO_OFFSET                  0.25 
