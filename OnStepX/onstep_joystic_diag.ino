@@ -3,8 +3,8 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
-// add oled
-//  Screen configuration (OLED 0.96")
+
+// Screen configuration (OLED 0.96")
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
 #define OLED_RESET -1
@@ -20,6 +20,9 @@ const char *MOUNT_URL = "http://192.168.0.1/mount.htm";
 const int JOY_X_PIN = 34;
 const int JOY_Y_PIN = 35;
 const int JOY_BUTTON_PIN = 27;
+
+// Battery voltage pin (ADC1)
+const int BATT_PIN = 32;
 
 // Direction inversion
 const bool INVERT_X = false;
@@ -62,9 +65,13 @@ unsigned long buttonLastChange = 0;
 int filteredX = 2048;
 int filteredY = 2048;
 
+// Вольтаж акумулятора
+float batteryVoltage = 0.0;
+
 // Системні статуси для екрану
 String currentStatus = "Booting...";
 unsigned long lastDisplayUpdate = 0;
+unsigned long lastBatteryCheck = 0;
 
 // Асинхронна черга FreeRTOS для HTTP команд між ядрами ESP32
 QueueHandle_t httpQueue;
@@ -105,10 +112,51 @@ void drawArrowRight(bool filled)
 }
 
 // --------------------------------------------------
+// Функція вимірювання напруги акумулятора 12В
+// --------------------------------------------------
+// --------------------------------------------------
+// Функція вимірювання напруги акумулятора 12В
+// --------------------------------------------------
+// --------------------------------------------------
+// Функція вимірювання напруги акумулятора 12В
+// --------------------------------------------------
+void checkBattery()
+{
+  // Пауза для мінімізації впливу радіозавад від Wi-Fi модуля
+  delay(2);
+
+  long sum = 0;
+  const int samples = 60;
+  for (int i = 0; i < samples; i++)
+  {
+    sum += analogRead(BATT_PIN);
+    delayMicroseconds(100);
+  }
+  float rawAdc = sum / (float)samples;
+
+  // Коефіцієнт відкориговано на 1.421, щоб підняти показник з 9.7В до точних 10.3В
+  float pinVoltage = (rawAdc * 3.6 / 4095.0) * 1.421;
+  float newVoltage = pinVoltage * ((100.0 + 20.0) / 20.0);
+
+  // Експоненційне згладжування (RC-фільтр) проти імпульсних просідань напруги
+  if (batteryVoltage < 1.0)
+  {
+    batteryVoltage = newVoltage;
+  }
+  else
+  {
+    batteryVoltage = (batteryVoltage * 4.0 + newVoltage) / 5.0;
+  }
+}
+
+// --------------------------------------------------
 // Оновлення екрану (працює миттєво на Core 1)
 // --------------------------------------------------
 void updateDisplay()
 {
+  // Захист від зсуву екрану через просідання напруги
+  display.ssd1306_command(SSD1306_SETSTARTLINE | 0x00);
+
   display.clearDisplay();
 
   // 1. ЖОВТА ЗОНА: Прогрес-бар швидкості
@@ -122,14 +170,14 @@ void updateDisplay()
   display.setTextSize(1);
   display.setTextColor(SSD1306_WHITE);
 
-  // 2. ГРАФІЧНІ СТРІЛКИ ДЖОЙСТИКА (З інверсією та заміною осей для коректного малювання)
+  // 2. ГРАФІЧНІ СТРІЛКИ ДЖОЙСТИКА
   drawArrowUp(displayXDirection == 1);    // Север
   drawArrowDown(displayXDirection == -1); // Юг
   drawArrowLeft(displayYDirection == -1); // Запад
   drawArrowRight(displayYDirection == 1); // Восток
 
   // 3. СЕРЕДНІЙ РЯДОК: Текстовий статус напрямку руху
-  display.setCursor(0, 24);
+  display.setCursor(0, 20);
   if (displayXDirection == 0 && displayYDirection == 0)
   {
     display.print("Status: Idle");
@@ -151,14 +199,22 @@ void updateDisplay()
       display.print("West");
   }
 
+  // 4. РЯДОК НАПРУГИ: Вольтаж акумулятора
+  display.setCursor(0, 32);
+  display.printf("Batt: %0.1fV", batteryVoltage);
+  if (batteryVoltage < 10.5 && batteryVoltage > 3.0)
+  {
+    display.print("LOW");
+  }
+
   // Розрахунок часу роботи (Uptime)
   unsigned long totalSeconds = millis() / 1000;
   unsigned long hours = totalSeconds / 3600;
   unsigned long minutes = (totalSeconds % 3600) / 60;
-  display.setCursor(0, 40);
+  display.setCursor(0, 44);
   display.printf("Up: %02dh %02dm", hours, minutes);
 
-  // 4. НАЙНИЖЧИЙ РЯДОК: Статус фонового потоку мережі
+  // 5. НАЙНИЖЧИЙ РЯДОК: Статус фонового потоку мережі
   display.setCursor(0, 56);
   display.print(currentStatus);
 
@@ -310,7 +366,7 @@ void wiFiTask(void *pvParameters)
           }
           else
           {
-            currentStatus = "WiFi OK | RSSI:" + String(WiFi.RSSI());
+            currentStatus = "WiFi OK";
           }
           http.end();
         }
@@ -362,7 +418,6 @@ void setup()
 {
   Serial.begin(115200);
   delay(500);
-
   if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C))
   {
     Serial.println("SSD1306 allocation failed");
@@ -372,16 +427,13 @@ void setup()
     display.clearDisplay();
     display.display();
   }
-
   pinMode(JOY_BUTTON_PIN, INPUT_PULLUP);
+  pinMode(BATT_PIN, INPUT);
   analogReadResolution(12);
   analogSetPinAttenuation(JOY_X_PIN, ADC_11db);
   analogSetPinAttenuation(JOY_Y_PIN, ADC_11db);
-
-  // Створюємо чергу для 10 текстових вказівників команд
+  analogSetPinAttenuation(BATT_PIN, ADC_11db);
   httpQueue = xQueueCreate(10, sizeof(char *));
-
-  // Калібруємо центр джойстика
   long sumX = 0, sumY = 0;
   for (int i = 0; i < 100; i++)
   {
@@ -393,47 +445,39 @@ void setup()
   centerY = sumY / 100;
   filteredX = centerX;
   filteredY = centerY;
-
-  // Запуск фонового асинхронного таска для Wi-Fi/HTTP на ЯДРІ 0
-  xTaskCreatePinnedToCore(
-      wiFiTask,
-      "WiFiTask",
-      4096,
-      NULL,
-      1,
-      NULL,
-      0);
-
+  checkBattery();
+  xTaskCreatePinnedToCore(wiFiTask, "WiFiTask", 4096, NULL, 1, NULL, 0);
   currentStatus = "Ready";
   updateDisplay();
 }
-
 // --------------------------------------------------
 // MAIN LOOP (Крутиться блискавично на Core 1)
 // --------------------------------------------------
 void loop()
 {
   handleSpeedButton();
-
-  // Зчитування та швидка фільтрація джойстика
   int rawX = readFilteredADC(JOY_X_PIN);
   int rawY = readFilteredADC(JOY_Y_PIN);
   filteredX = (filteredX * 3 + rawX) / 4;
   filteredY = (filteredY * 3 + rawY) / 4;
-  // Розрахунок напрямків
   int newXDirection = getDirection(filteredX, centerX, displayXDirection, INVERT_X);
   int newYDirection = getDirection(filteredY, centerY, displayYDirection, INVERT_Y);
   int oldDisplayX = displayXDirection;
   int oldDisplayY = displayYDirection;
   displayXDirection = newXDirection;
   displayYDirection = newYDirection;
-  // МИТТЄВЕ оновлення графіки на екрані при найменшому русі важеля
+  // Вимірювання напруги раз на 5 секунд
+  if (millis() - lastBatteryCheck > 5000)
+  {
+    checkBattery();
+    lastBatteryCheck = millis();
+    updateDisplay();
+  }
   if (displayXDirection != oldDisplayX || displayYDirection != oldDisplayY || (millis() - lastDisplayUpdate > 1000))
   {
     updateDisplay();
     lastDisplayUpdate = millis();
   }
-  // Запис команд у чергу FreeRTOS (виконується міттєво)
   setXAxis(newXDirection);
   setYAxis(newYDirection);
   delay(10);
