@@ -18,7 +18,7 @@
 
 #define LIMIT_SENSE_PIN AUTO
 #define LIMIT_SENSE HIGH
-#define SERIAL_TMC_RX 35 // Перенос RX драйверов на Y-MIN для диагностики status_on
+#define SERIAL_TMC_RX 34 // Перенос RX драйверов на Y-MIN для диагностики status_on
 
 #define SERIAL_DEBUG_BAUD 115200
 #define DISPLAY_WEATHER OFF
@@ -67,8 +67,7 @@
 #define AXIS1_POWER_DOWN OFF
 
 // Жесткое принудительное назначение оптического датчика Home Азимута на разъем Y-MIN
-#define AXIS1_SENSE_HOME OFF
-#define AXIS1_SENSE_HOME_PIN OFF
+
 #define AXIS1_SENSE_HOME HIGH
 #define AXIS1_SENSE_HOME_PIN 15
 #define AXIS1_SENSE_LIMIT_MIN OFF
@@ -92,10 +91,9 @@
 #define AXIS2_POWER_DOWN OFF
 
 // Жесткое принудительное назначение оптического датчика Home Высоты на разъем E-MIN (FAN0)
-#define AXIS2_SENSE_HOME OFF
-#define AXIS2_SENSE_HOME_PIN OFF
+
 #define AXIS2_SENSE_HOME HIGH
-#define AXIS2_SENSE_HOME_PIN 34
+#define AXIS2_SENSE_HOME_PIN 35
 #define AXIS2_SENSE_LIMIT_MIN OFF
 #define AXIS2_SENSE_LIMIT_MAX OFF
 
@@ -109,7 +107,7 @@
 #define DISPLAY_TYPE OFF // Екран вимкнено
 
 // Отключаем внутренний опрос термодатчиков, чтобы они не читали движения джойстика как температуру
-#define FOCUSER_TEMPERATURE OFF
+#define FOCUSER_TEMPERATURE 0
 
 // Полностью выключаем все грелки (Dew Heaters), чтобы освободить GPIO2 под кнопку джойстика
 #define FEATURE1_PURPOSE OFF
