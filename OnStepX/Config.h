@@ -16,7 +16,7 @@
 #define SERIAL_B_ESP32_BT ON
 #define MNT_NAME "OnStep"
 
-#define LIMIT_SENSE_PIN AUTO
+#define LIMIT_SENSE_PIN OFF
 #define LIMIT_SENSE HIGH
 #define SERIAL_TMC_RX 34 // Перенос RX драйверов на Y-MIN для диагностики status_on
 
@@ -65,11 +65,11 @@
 #define AXIS1_DRIVER_DECAY OFF
 #define AXIS1_DRIVER_DECAY_GOTO OFF
 #define AXIS1_POWER_DOWN OFF
-
+#define AXIS1_SLEW_RATE_PERCENT 1.0F
 // Жесткое принудительное назначение оптического датчика Home Азимута на разъем Y-MIN
 
 #define AXIS1_SENSE_HOME HIGH
-#define AXIS1_SENSE_HOME_PIN 15
+#define AXIS1_SENSE_HOME_PIN 35
 #define AXIS1_SENSE_LIMIT_MIN OFF
 #define AXIS1_SENSE_LIMIT_MAX OFF
 
@@ -89,11 +89,11 @@
 #define AXIS2_DRIVER_DECAY OFF
 #define AXIS2_DRIVER_DECAY_GOTO OFF
 #define AXIS2_POWER_DOWN OFF
-
+#define AXIS2_SLEW_RATE_PERCENT 2.0F
 // Жесткое принудительное назначение оптического датчика Home Высоты на разъем E-MIN (FAN0)
 
 #define AXIS2_SENSE_HOME HIGH
-#define AXIS2_SENSE_HOME_PIN 35
+#define AXIS2_SENSE_HOME_PIN 39
 #define AXIS2_SENSE_LIMIT_MIN OFF
 #define AXIS2_SENSE_LIMIT_MAX OFF
 
