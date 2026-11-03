@@ -101,13 +101,13 @@
 #define SERIAL_GPS Serial2
 #define SERIAL_GPS_RX 22       // Переносим на чистый пин 22 (SCL разъема I2C)
 #define SERIAL_GPS_TX 21       // Пин SDA (даже если не подключен, OnStep инициализирует порт на этой паре)
-#define SERIAL_GPS_BAUD 115200 // Родная скорость вашего чипа BE-220
+#define SERIAL_GPS_BAUD 38400  // Родная скорость вашего чипа BE-220
 #define TIME_LOCATION_PPS_SENSE OFF
 
-#define DISPLAY_TYPE OFF // Екран вимкнено
+#define DISPLAY_TYPE OFF // Екран вcdимкнено
 
 // Отключаем внутренний опрос термодатчиков, чтобы они не читали движения джойстика как температуру
-#define FOCUSER_TEMPERATURE 0
+#define FOCUSER_TEMPERATURE OFF
 
 // Полностью выключаем все грелки (Dew Heaters), чтобы освободить GPIO2 под кнопку джойстика
 #define FEATURE1_PURPOSE OFF
